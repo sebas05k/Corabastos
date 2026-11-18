@@ -15,9 +15,31 @@ from pathlib import Path
 
 import pandas as pd
 
-DB_PATH = Path(
-    os.environ.get("CORABASTOS_DB", Path(__file__).parent / "data" / "corabastos.db")
-)
+RAIZ = Path(__file__).parent
+
+
+def _buscar_db() -> Path:
+    """data/corabastos.db; si no está ahí, la busca en cualquier carpeta del repo."""
+    if os.environ.get("CORABASTOS_DB"):
+        return Path(os.environ["CORABASTOS_DB"])
+    esperada = RAIZ / "data" / "corabastos.db"
+    if esperada.exists():
+        return esperada
+    for candidata in sorted(RAIZ.rglob("corabastos.db")):
+        return candidata
+    return esperada
+
+
+DB_PATH = _buscar_db()
+
+
+def db_valida() -> tuple[bool, str]:
+    """Comprueba que la BD exista y no sea un puntero de Git LFS u otro archivo vacío."""
+    if not DB_PATH.exists():
+        return False, "no existe"
+    if DB_PATH.stat().st_size < 100_000:
+        return False, f"existe pero pesa solo {DB_PATH.stat().st_size} bytes (¿puntero de Git LFS?)"
+    return True, "ok"
 
 CAMPOS = {
     "precio_unidad": "Precio unidad",
@@ -52,7 +74,7 @@ def consulta(sql: str, params: tuple = ()) -> pd.DataFrame:
 
 def db_version() -> float:
     """Marca de tiempo de la BD; sirve para invalidar la caché al actualizar datos."""
-    return DB_PATH.stat().st_mtime
+    return DB_PATH.stat().st_mtime if DB_PATH.exists() else 0.0
 
 
 # ── Catálogo ─────────────────────────────────────────────────────────────────

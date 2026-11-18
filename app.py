@@ -18,6 +18,29 @@ st.set_page_config(
 
 VERDE, ROJO, GRIS = "#2E7D32", "#C62828", "#9E9E9E"
 
+# ── Verificación de la base de datos ─────────────────────────────────────────
+_ok, _motivo = data.db_valida()
+if not _ok:
+    st.error(
+        f"No puedo usar la base de datos `{data.DB_PATH.relative_to(data.RAIZ).as_posix()}`: {_motivo}."
+    )
+    st.markdown(
+        "Revisa en GitHub que el archivo **`data/corabastos.db`** (~10 MB) esté en el repositorio. "
+        "Si no aparece, súbelo con `git add -f data/corabastos.db` (algunos `.gitignore` ignoran los `.db`), "
+        "haz commit y push; la app se redespliega sola."
+    )
+    st.markdown("**Archivos que ve la app en el servidor:**")
+    st.code(
+        "\n".join(
+            sorted(
+                p.relative_to(data.RAIZ).as_posix()
+                for p in data.RAIZ.rglob("*")
+                if p.is_file() and not {".git", "__pycache__"} & set(p.parts)
+            )[:60]
+        )
+    )
+    st.stop()
+
 
 # ── Caché (se invalida sola cuando cambia el archivo de la BD) ───────────────
 

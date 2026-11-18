@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+# El crawler descarga PDFs y logs aquí; no se suben al repo
+crawler/data/
+# Archivos auxiliares de SQLite (el repo solo debe llevar corabastos.db)
+*.db-wal
+*.db-shm
+*.db-journal
